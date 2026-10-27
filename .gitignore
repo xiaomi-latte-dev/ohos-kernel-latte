@@ -1,0 +1,8 @@
+.cache/
+kernels/
+work/
+out/
+*.log
+__pycache__/
+*.pyc
+.DS_Store

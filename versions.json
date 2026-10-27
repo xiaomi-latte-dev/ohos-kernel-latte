@@ -1,0 +1,124 @@
+{
+  "$schema": "./versions.schema.json",
+  "default": "7.0",
+  "repos": {
+    "hdf": {
+      "url": "https://gitcode.com/openharmony/drivers_hdf_core.git",
+      "path": "drivers/hdf_core",
+      "description": "KHDF adapter, framework and inner API"
+    },
+    "common_modules": {
+      "url": "https://gitcode.com/openharmony/kernel_linux_common_modules.git",
+      "path": "kernel/linux/common_modules",
+      "description": "OpenHarmony memory_security / code_sign / dec kernel modules"
+    },
+    "bcl": {
+      "url": "https://gitcode.com/openharmony/third_party_bounds_checking_function.git",
+      "path": "third_party/bounds_checking_function",
+      "description": "libsec bounds checking functions used by HDF"
+    },
+    "freebsd": {
+      "url": "https://gitcode.com/openharmony/third_party_FreeBSD.git",
+      "path": "third_party/FreeBSD/sys/dev/evdev",
+      "subpath": "sys/dev/evdev",
+      "description": "FreeBSD evdev input layer used by HDF"
+    },
+    "ohemu": {
+      "url": "https://gitcode.com/openharmony/vendor_ohemu.git",
+      "path": "vendor/ohemu/virt/hdf_config",
+      "subpath": "virt/hdf_config",
+      "description": "QEMU virt HDF HCS configuration"
+    },
+    "device_qemu": {
+      "url": "https://gitcode.com/openharmony/device_qemu.git",
+      "path": "device/qemu/common/virt_full/kernel",
+      "subpath": "common/virt_full/kernel",
+      "description": "QEMU firmware used by the kernel build"
+    }
+  },
+  "kernels": {
+    "7.0": {
+      "description": "OpenHarmony 7.0 Release, Linux 6.6.101",
+      "kernel_version": "6.6",
+      "repo": "https://gitcode.com/openharmony/kernel_linux_6.6.git",
+      "branch": "OpenHarmony-7.0-Release",
+      "patches": "v7.0-k6.6",
+      "defconfig": "v7.0_defconfig",
+      "enabled": true,
+      "deps": {
+        "hdf": "OpenHarmony-7.0-Release",
+        "common_modules": "OpenHarmony-7.0-Release",
+        "bcl": "OpenHarmony-7.0-Release",
+        "freebsd": "OpenHarmony-7.0-Release",
+        "ohemu": "OpenHarmony-7.0-Release",
+        "device_qemu": "OpenHarmony-7.0-Release"
+      },
+      "notes": "verified x86_64 QEMU build",
+      "toolchain": "clang-15.0.4",
+      "official_patches": "device/qemu/common/virt_full/kernel/patch"
+    },
+    "6.1-lts": {
+      "description": "OpenHarmony 6.1 LTS, Linux 6.6 branch 6.1",
+      "kernel_version": "6.6",
+      "repo": "https://gitcode.com/openharmony/kernel_linux_6.6.git",
+      "branch": "OpenHarmony-6.1-Release",
+      "patches": "v6.1-k6.6",
+      "defconfig": "v6.1-lts_defconfig",
+      "enabled": true,
+      "deps": {
+        "hdf": "OpenHarmony-6.1-Release",
+        "common_modules": "OpenHarmony-6.1-Release",
+        "bcl": "OpenHarmony-6.1-Release",
+        "freebsd": "OpenHarmony-6.1-Release",
+        "ohemu": "OpenHarmony-6.1-Release"
+      },
+      "notes": "experimental: 7.0 QEMU patch set reused until a 6.1-specific set is added",
+      "toolchain": "clang-15.0.4"
+    },
+    "6.1-lts-5.10": {
+      "description": "OpenHarmony 6.1 LTS with Linux 5.10",
+      "kernel_version": "5.10",
+      "repo": "https://gitcode.com/openharmony/kernel_linux_5.10.git",
+      "branch": "OpenHarmony-6.1-Release",
+      "patches": "v6.1-k5.10",
+      "defconfig": "v6.1-lts-k5.10_defconfig",
+      "enabled": false,
+      "deps": {
+        "hdf": "OpenHarmony-6.1-Release",
+        "common_modules": "OpenHarmony-6.1-Release",
+        "bcl": "OpenHarmony-6.1-Release",
+        "freebsd": "OpenHarmony-6.1-Release",
+        "ohemu": "OpenHarmony-6.1-Release"
+      },
+      "notes": "no QEMU 5.10 x86_64 patch set yet",
+      "toolchain": "clang-15.0.4"
+    },
+    "7.0-5.10": {
+      "description": "OpenHarmony 7.0 Release with Linux 5.10",
+      "kernel_version": "5.10",
+      "repo": "https://gitcode.com/openharmony/kernel_linux_5.10.git",
+      "branch": "OpenHarmony-7.0-Release",
+      "patches": "v7.0-k5.10",
+      "defconfig": "v7.0-k5.10_defconfig",
+      "enabled": false,
+      "deps": {
+        "hdf": "OpenHarmony-7.0-Release",
+        "common_modules": "OpenHarmony-7.0-Release",
+        "bcl": "OpenHarmony-7.0-Release",
+        "freebsd": "OpenHarmony-7.0-Release",
+        "ohemu": "OpenHarmony-7.0-Release",
+        "device_qemu": "OpenHarmony-7.0-Release"
+      },
+      "notes": "no QEMU 5.10 x86_64 patch set yet",
+      "toolchain": "clang-15.0.4"
+    }
+  },
+  "toolchains": {
+    "clang-15.0.4": {
+      "url": "https://repo.huaweicloud.com/openharmony/compiler/clang/15.0.4-02fbe8/linux/clang_linux-x86_64-02fbe8-20260908.tar.gz",
+      "sha256": "8c1173e6386e2c7f72ca8350693fb2cf122b6fc6107fa66c77c6ba6283743edf",
+      "archive_root": "clang_linux-x86_64-02fbe8-20260908",
+      "description": "OpenHarmony LLVM 15.0.4 linux-x86_64 prebuilt tarball"
+    }
+  }
+}

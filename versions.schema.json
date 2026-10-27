@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenHarmony kernel build matrix",
+  "description": "Annotated configuration for ohos_kernel.py: shared repositories and per-kernel build variants.",
+  "type": "object",
+  "required": [
+    "default",
+    "repos",
+    "kernels",
+    "toolchains"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema file."
+    },
+    "default": {
+      "type": "string",
+      "description": "Kernel selected when no version is passed."
+    },
+    "repos": {
+      "type": "object",
+      "description": "Shared cached repository definitions. Each key is the dependency name.",
+      "additionalProperties": {
+        "$ref": "#/definitions/repo"
+      }
+    },
+    "kernels": {
+      "type": "object",
+      "description": "Kernel variants. Each key is the CLI version name.",
+      "additionalProperties": {
+        "$ref": "#/definitions/kernel"
+      }
+    },
+    "toolchains": {
+      "type": "object",
+      "description": "Downloadable toolchain archives cached under .cache/toolchain.",
+      "additionalProperties": {
+        "$ref": "#/definitions/toolchain"
+      }
+    }
+  },
+  "definitions": {
+    "repo": {
+      "type": "object",
+      "required": [
+        "url",
+        "path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Git repository URL."
+        },
+        "path": {
+          "type": "string",
+          "description": "Destination path inside the per-version OHOS workspace."
+        },
+        "subpath": {
+          "type": "string",
+          "description": "Optional subdirectory of the repository to copy."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable purpose."
+        }
+      }
+    },
+    "kernel": {
+      "type": "object",
+      "required": [
+        "description",
+        "kernel_version",
+        "repo",
+        "branch",
+        "patches",
+        "defconfig",
+        "enabled",
+        "deps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable variant name."
+        },
+        "kernel_version": {
+          "type": "string",
+          "description": "Upstream Linux version, for display and patch compatibility."
+        },
+        "repo": {
+          "type": "string",
+          "description": "OpenHarmony kernel git repository."
+        },
+        "branch": {
+          "type": "string",
+          "description": "Kernel git branch."
+        },
+        "patches": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Directory under patches/ named v<release>-k<kernel>, or null."
+        },
+        "defconfig": {
+          "type": "string",
+          "description": "File name under configs/."
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the default command may select this variant."
+        },
+        "deps": {
+          "type": "object",
+          "description": "Dependency name to git branch mapping.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Implementation notes and known limitations."
+        },
+        "toolchain": {
+          "type": "string",
+          "description": "Toolchain key from the top-level toolchains map."
+        },
+        "official_patches": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Path under work/<version>/ohos containing official patches fetched from device_qemu."
+        }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "required": [
+        "url",
+        "sha256",
+        "archive_root"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Direct tarball URL."
+        },
+        "sha256": {
+          "type": "string",
+          "description": "Expected SHA-256 of the archive."
+        },
+        "archive_root": {
+          "type": "string",
+          "description": "Top-level directory inside the archive."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable purpose."
+        }
+      }
+    }
+  }
+}
