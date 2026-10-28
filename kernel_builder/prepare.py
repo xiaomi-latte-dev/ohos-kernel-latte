@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict
 
-from .config import BASE, KernelSpec, RepoSpec
+from .config import BASE, KernelSpec, RepoSpec, kernel_id
 from .deps import prepare_deps
 from .paths import build_root, kernel_root
 from .toolchain import kernel_env
@@ -121,7 +121,7 @@ def valid_kernel_worktree(kroot: Path) -> bool:
 def prepare_one(version: str, spec: KernelSpec, repos: Dict[str, RepoSpec]):
     if not spec.enabled:
         raise SystemExit("kernel " + version + " is disabled")
-    kroot = kernel_root(version)
+    kroot = kernel_root(kernel_id(version, spec))
     if kroot.is_dir() and not valid_kernel_worktree(kroot):
         print("kernel cache has no valid git worktree, re-cloning " + version)
         shutil.rmtree(kroot)
@@ -138,7 +138,7 @@ def prepare_one(version: str, spec: KernelSpec, repos: Dict[str, RepoSpec]):
     setup_hdf(deps_root, kroot)
     install_defconfig(spec, kroot)
     env = kernel_env(spec)
-    out = build_root(version)
+    out = build_root(kernel_id(version, spec))
     make(kroot, out, env, spec.defconfig)
     make(kroot, out, env, "olddefconfig")
     fix_x86_cpu(kroot, out, env)

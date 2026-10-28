@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 
 from .build import build_one, clean_one, package_one, reset_one
-from .config import load_config
+from .config import kernel_id, load_config
 from .paths import build_root, kernel_root
 from .prepare import prepare_one
 from .toolchain import kernel_env
@@ -46,7 +46,8 @@ def main():
     if args.cmd == "make":
         spec = kernels[args.version]
         env = kernel_env(spec)
-        make(kernel_root(args.version), build_root(args.version), env, *args.args)
+        make(kernel_root(kernel_id(args.version, spec)),
+             build_root(kernel_id(args.version, spec)), env, *args.args)
         return
     for name in names:
         spec = kernels[name]
@@ -55,11 +56,11 @@ def main():
         elif args.cmd == "build":
             build_one(name, spec)
         elif args.cmd == "package":
-            package_one(name)
+            package_one(name, spec)
         elif args.cmd == "clean":
-            clean_one(name)
+            clean_one(name, spec)
         elif args.cmd == "reset":
-            reset_one(name)
+            reset_one(name, spec)
         elif args.cmd == "all":
             prepare_one(name, spec, repos)
             build_one(name, spec)

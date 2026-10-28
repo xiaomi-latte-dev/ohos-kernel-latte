@@ -77,6 +77,15 @@ def load_config():
     return raw.get("default", "7.0"), repos, kernels
 
 
+def kernel_id(version: str, spec: KernelSpec) -> str:
+    """Kernel cache name: v<system-release>-k<kernel-version>.
+
+    Same naming scheme as the configs/ defconfigs and patches/ directories;
+    the patches field currently carries it.
+    """
+    return spec.patches or version
+
+
 def load_toolchains() -> Dict[str, ToolchainSpec]:
     raw = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
     return {name: ToolchainSpec(**spec)

@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 
-from .config import CACHE, RepoSpec, KernelSpec
+from .config import CACHE, KernelSpec, RepoSpec, kernel_id
 from .paths import work_root
 from .util import copy_tree, run
 
@@ -21,7 +21,7 @@ def cache_repo(name: str, repo: RepoSpec, branch: str) -> Path:
 
 
 def prepare_deps(version: str, spec: KernelSpec, repos: Dict[str, RepoSpec]):
-    root = work_root(version) / "ohos"
+    root = work_root(kernel_id(version, spec)) / "ohos"
     root.mkdir(parents=True, exist_ok=True)
     for name, branch in spec.deps.items():
         repo = repos[name]

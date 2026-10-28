@@ -30,7 +30,7 @@ OpenHarmony multi-kernel x86_64 QEMU builder in Python.
     7.0-5.10       5.10  disabled  OpenHarmony-7.0-Release
 
 6.1 LTS currently reuses the 7.0 QEMU patch set and is marked experimental in
-versions.json; replace patches/6.1-lts when a dedicated set is available.
+versions.json; replace patches/v6.1-k6.6 when a dedicated set is available.
 
 ## Cache
 
@@ -40,9 +40,9 @@ Repositories are cloned once into:
 
 Then copied into:
 
-    work/<version>/ohos/<repo-path>
+    work/<name>/ohos/<repo-path>
 
-Kernel builds use symlinks into work/<version>/ohos and never write to
+Kernel builds use symlinks into work/<name>/ohos and never write to
 .cache/repos.
 
 ## Toolchain
@@ -54,12 +54,16 @@ system clang/ld.lld. Override explicitly with:
 
 ## Outputs
 
-    kernels/<version>/       git kernel cache with patches applied
-    work/<version>/out/      kernel build output (O=)
-    out/<version>/bzImage
-    out/<version>/modules/
-    out/<version>/firmware/
-    out/ohos-kernel-<version>.tar.gz
+    kernels/<name>/          git kernel cache with patches applied
+    work/<name>/ohos/        per-variant dependency copy
+    work/<name>/out/         kernel build output (O=)
+    out/<name>/bzImage
+    out/<name>/modules/
+    out/<name>/firmware/
+    out/ohos-kernel-<name>.tar.gz
+
+<name> is v<release>-k<kernel-version>, e.g. v7.0-k6.6; kernels/, work/ and
+out/ all use it.
 
 ## Toolchain cache
 
@@ -83,7 +87,7 @@ the SDK tree. Override with CLANG_BIN if needed:
 
 Official QEMU device patches are fetched from the device_qemu repository cache:
 
-    work/<version>/ohos/device/qemu/common/virt_full/kernel/patch
+    work/<name>/ohos/device/qemu/common/virt_full/kernel/patch
 
 Set official_patches in versions.json to change that path. Local override patches are searched recursively under:
 
@@ -99,16 +103,31 @@ Examples:
 They are applied after the official set. Do not duplicate official patches in
 the local tree.
 
+The name v<release>-k<kernel-version> (system release plus kernel version) is
+the project-wide naming for a kernel variant, not a patches-only key. The same
+name is used by configs/ defconfigs, patches/ directories and kernels/ caches:
+
+    name            defconfig                     patches/ + kernels/
+    v7.0-k6.6       v7.0_defconfig                v7.0-k6.6
+    v7.0-k5.10      v7.0-k5.10_defconfig          v7.0-k5.10
+    v6.1-k6.6       v6.1-lts_defconfig            v6.1-k6.6
+    v6.1-k5.10      v6.1-lts-k5.10_defconfig      v6.1-k5.10
+
+The name is stored in the patches field of versions.json, so a version always
+has a matching patches/kernels pair. Versions that share a name share one
+kernel cache directory.
+
 ## Kernel cache and outputs
 
-kernels/<version> is the kernel cache. It is a real git worktree with the
-device and local patches applied. Build artifacts never go there; the kernel
-O= output is written to work/<version>/out.
+kernels/<name> is the kernel cache, where <name> is v<release>-k<kernel-version>
+(for example kernels/v7.0-k6.6 for the 7.0 version). It is a real git worktree
+with the device and local patches applied. Build artifacts never go there; the kernel
+O= output is written to work/<name>/out.
 
 clean removes only build output:
 
-    work/<version>/out
-    out/<version>
+    work/<name>/out
+    out/<name>
 
 reset uses git to return the kernel cache to its commit and removes its work
 directory:
