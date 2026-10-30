@@ -64,4 +64,4 @@ def main():
         elif args.cmd == "all":
             prepare_one(name, spec, repos)
             build_one(name, spec)
-            package_one(name)
+            package_one(name, spec)
