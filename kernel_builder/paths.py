@@ -19,5 +19,10 @@ def out_root(key: str) -> Path:
     return BASE / "out" / key
 
 
+def src_root(key: str) -> Path:
+    """Per-variant kernel working copy; all patches are applied here."""
+    return work_root(key) / "src"
+
+
 def build_root(key: str) -> Path:
     return work_root(key) / "out"

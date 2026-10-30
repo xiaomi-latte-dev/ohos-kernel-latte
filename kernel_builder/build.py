@@ -6,26 +6,27 @@ import shutil
 import tarfile
 
 from .config import KernelSpec, kernel_id
-from .paths import build_root, kernel_root, out_root, work_root
+from .paths import build_root, kernel_root, out_root, src_root, work_root
 from .prepare import fix_x86_cpu, install_defconfig
 from .toolchain import kernel_env
-from .util import make, run
+from .util import make
 
 
 def build_one(version: str, spec: KernelSpec):
-    kroot = kernel_root(kernel_id(version, spec))
-    if not kroot.is_dir():
-        raise SystemExit("kernel not prepared: " + version)
-    env = kernel_env(spec)
     key = kernel_id(version, spec)
+    ksrc = src_root(key)
+    if not ksrc.is_dir():
+        raise SystemExit("kernel not prepared: " + version +
+                         " (run prepare first, expected " + str(ksrc) + ")")
+    env = kernel_env(spec)
     out = build_root(key)
     if not (out / ".config").is_file():
-        install_defconfig(spec, kroot)
-        make(kroot, out, env, spec.defconfig)
-    fix_x86_cpu(kroot, out, env)
-    make(kroot, out, env, "olddefconfig")
+        install_defconfig(spec, ksrc)
+        make(ksrc, out, env, spec.defconfig)
+    fix_x86_cpu(ksrc, out, env)
+    make(ksrc, out, env, "olddefconfig")
     extra = {"KCFLAGS": "-Wno-unused-command-line-argument -Wno-error=unused-command-line-argument"}
-    make(kroot, out, env, "-j" + str(os.cpu_count() or 1), extra=extra)
+    make(ksrc, out, env, "-j" + str(os.cpu_count() or 1), extra=extra)
 
     dst = out_root(key)
     (dst / "modules").mkdir(parents=True, exist_ok=True)
@@ -71,11 +72,11 @@ def clean_one(version: str, spec: KernelSpec):
 
 
 def reset_one(version: str, spec: KernelSpec):
-    kroot = kernel_root(kernel_id(version, spec))
-    if not (kroot / ".git").exists():
-        raise SystemExit("not a git worktree: " + str(kroot))
-    run(["git", "-C", str(kroot), "reset", "--hard", "HEAD"])
-    run(["git", "-C", str(kroot), "clean", "-fdx"])
-    shutil.rmtree(work_root(kernel_id(version, spec)), ignore_errors=True)
-    shutil.rmtree(out_root(kernel_id(version, spec)), ignore_errors=True)
-    print("reset " + version + " to its git commit")
+    key = kernel_id(version, spec)
+    wroot = work_root(key)
+    if not wroot.is_dir():
+        raise SystemExit("nothing to reset: " + str(wroot))
+    print("reset " + version + ": drop " + str(wroot) +
+          " (pristine clone kept in " + str(kernel_root(key)) + ")")
+    shutil.rmtree(wroot, ignore_errors=True)
+    shutil.rmtree(out_root(key), ignore_errors=True)

@@ -7,7 +7,7 @@ OpenHarmony multi-kernel x86_64 QEMU builder in Python.
 - multi-kernel matrix in annotated versions.json + versions.schema.json
 - shared dependency cache under .cache/repos
 - no OHOS source tree dependency for HDF/common_modules/BCL/FreeBSD/ohemu
-- per-version workspace copies; cached repositories are never modified
+- per-version workspace copies; cached repositories and kernels/ clones are never modified
 - per-version patches and defconfig
 - optional 6.1 LTS variant
 
@@ -54,7 +54,8 @@ system clang/ld.lld. Override explicitly with:
 
 ## Outputs
 
-    kernels/<name>/          git kernel cache with patches applied
+    kernels/<name>/          pristine clone of the upstream branch
+    work/<name>/src/         working copy; device and local patches live here
     work/<name>/ohos/        per-variant dependency copy
     work/<name>/out/         kernel build output (O=)
     out/<name>/bzImage
@@ -117,20 +118,23 @@ The name is stored in the patches field of versions.json, so a version always
 has a matching patches/kernels pair. Versions that share a name share one
 kernel cache directory.
 
-## Kernel cache and outputs
+## Kernel clone, working copy and outputs
 
-kernels/<name> is the kernel cache, where <name> is v<release>-k<kernel-version>
-(for example kernels/v7.0-k6.6 for the 7.0 version). It is a real git worktree
-with the device and local patches applied. Build artifacts never go there; the kernel
-O= output is written to work/<name>/out.
+kernels/<name> is a pristine clone of the upstream branch, where <name> is
+v<release>-k<kernel-version> (for example kernels/v7.0-k6.6 for the 7.0
+version). prepare never writes to it: it copies the clone into
+work/<name>/src and applies the device and local patches, the HDF symlinks,
+the defconfig and the x86 CPU tweaks there. Build artifacts never go there
+either; the kernel O= output is written to work/<name>/out.
 
 clean removes only build output:
 
     work/<name>/out
     out/<name>
 
-reset uses git to return the kernel cache to its commit and removes its work
-directory:
+reset drops the whole per-variant workspace (work/<name> and out/<name>) and
+leaves the pristine clone in kernels/<name> untouched, so the next prepare
+starts from a fresh copy:
 
     python3 ohos_kernel.py reset 7.0
     python3 ohos_kernel.py prepare 7.0

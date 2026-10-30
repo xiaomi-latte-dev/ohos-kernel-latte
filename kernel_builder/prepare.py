@@ -9,7 +9,7 @@ from typing import Dict
 
 from .config import BASE, KernelSpec, RepoSpec, kernel_id
 from .deps import prepare_deps
-from .paths import build_root, kernel_root
+from .paths import build_root, kernel_root, src_root, work_root
 from .toolchain import kernel_env
 from .util import make, run
 
@@ -118,29 +118,56 @@ def valid_kernel_worktree(kroot: Path) -> bool:
     return result.returncode == 0
 
 
-def prepare_one(version: str, spec: KernelSpec, repos: Dict[str, RepoSpec]):
-    if not spec.enabled:
-        raise SystemExit("kernel " + version + " is disabled")
-    kroot = kernel_root(kernel_id(version, spec))
+def pristine_clone(kroot: Path, spec: KernelSpec):
+    """Keep kernels/<name> as an unmodified clone of the upstream branch."""
     if kroot.is_dir() and not valid_kernel_worktree(kroot):
-        print("kernel cache has no valid git worktree, re-cloning " + version)
+        print("kernel clone is not a git worktree, re-cloning " + str(kroot))
         shutil.rmtree(kroot)
-    marker = kroot / ".ohos-prepared"
-    if marker.exists():
-        print("already prepared " + version + ", skip")
-        return
     if not kroot.is_dir():
         kroot.parent.mkdir(parents=True, exist_ok=True)
         run(["git", "clone", "--depth=1", "--single-branch",
              "-b", spec.branch, spec.repo, str(kroot)])
+
+
+def work_copy(kroot: Path, wsrc: Path):
+    """Copy the pristine kernel into work/<name>/src for patching.
+
+    git clone --local silently falls back to a full copy for shallow clones,
+    so copy the tree instead; reflink is used when the filesystem supports it.
+    """
+    if wsrc.is_dir() and not valid_kernel_worktree(wsrc):
+        print("kernel working copy is not a git worktree, re-copying " + str(wsrc))
+        shutil.rmtree(wsrc)
+    if not wsrc.is_dir():
+        wsrc.parent.mkdir(parents=True, exist_ok=True)
+        print("copy working copy " + str(wsrc) + " from " + str(kroot))
+        result = subprocess.run(["cp", "-a", "--reflink=auto",
+                                 str(kroot), str(wsrc)])
+        if result.returncode != 0:
+            raise SystemExit("failed to copy kernel working copy")
+
+
+def prepare_one(version: str, spec: KernelSpec, repos: Dict[str, RepoSpec]):
+    if not spec.enabled:
+        raise SystemExit("kernel " + version + " is disabled")
+    key = kernel_id(version, spec)
+    kroot = kernel_root(key)
+    wroot = work_root(key)
+    marker = wroot / ".ohos-prepared"
+    if marker.exists():
+        print("already prepared " + version + ", skip")
+        return
+    pristine_clone(kroot, spec)
+    wsrc = src_root(key)
+    work_copy(kroot, wsrc)
     deps_root = prepare_deps(version, spec, repos)
-    apply_patches(version, kroot, deps_root, spec)
-    setup_hdf(deps_root, kroot)
-    install_defconfig(spec, kroot)
+    apply_patches(version, wsrc, deps_root, spec)
+    setup_hdf(deps_root, wsrc)
+    install_defconfig(spec, wsrc)
     env = kernel_env(spec)
-    out = build_root(kernel_id(version, spec))
-    make(kroot, out, env, spec.defconfig)
-    make(kroot, out, env, "olddefconfig")
-    fix_x86_cpu(kroot, out, env)
+    out = build_root(key)
+    make(wsrc, out, env, spec.defconfig)
+    make(wsrc, out, env, "olddefconfig")
+    fix_x86_cpu(wsrc, out, env)
     marker.write_text("ok\n")
-    print("prepared " + version)
+    print("prepared " + version + " in " + str(wsrc))
